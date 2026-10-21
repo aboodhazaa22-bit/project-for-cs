@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carbon Footprint Calculator</title>
+<style>
+  :root{
+    --green:#2e7d32;
+    --green-light:#4caf50;
+    --bg:#f4f7f4;
+    --card:#ffffff;
+    --text:#1f2d1f;
+    --muted:#5f6f5f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.6;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  header{
+    background:linear-gradient(135deg,var(--green),var(--green-light));
+    color:#fff;
+    padding:2.5rem 1rem;
+    text-align:center;
+  }
+  header h1{font-size:2rem;margin-bottom:.5rem}
+  header p{opacity:.9;max-width:600px;margin:0 auto}
+  main{
+    flex:1;
+    width:100%;
+    max-width:720px;
+    margin:2rem auto;
+    padding:0 1rem;
+  }
+  .card{
+    background:var(--card);
+    border-radius:14px;
+    box-shadow:0 6px 24px rgba(0,0,0,.08);
+    padding:2rem;
+  }
+  .field{margin-bottom:1.25rem}
+  label{
+    display:block;
+    font-weight:600;
+    margin-bottom:.35rem;
+    font-size:.95rem;
+  }
+  label span{color:var(--muted);font-weight:400;font-size:.8rem}
+  input[type=number], select{
+    width:100%;
+    padding:.7rem .9rem;
+    border:1px solid #cfd8cf;
+    border-radius:8px;
+    font-size:1rem;
+    background:#fbfdfb;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  input[type=number]:focus, select:focus{
+    outline:none;
+    border-color:var(--green-light);
+    box-shadow:0 0 0 3px rgba(76,175,80,.2);
+  }
+  button{
+    width:100%;
+    padding:.9rem;
+    background:var(--green);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    font-size:1.05rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:background .2s, transform .1s;
+  }
+  button:hover{background:#256428}
+  button:active{transform:scale(.99)}
+  #result{
+    margin-top:1.5rem;
+    display:none;
+    text-align:center;
+  }
+  #result.show{display:block;animation:fadeIn .4s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .total{
+    font-size:2.4rem;
+    font-weight:700;
+    color:var(--green);
+    line-height:1.2;
+  }
+  .total small{font-size:1rem;color:var(--muted);font-weight:400}
+  .rating{
+    display:inline-block;
+    margin-top:.5rem;
+    padding:.35rem .9rem;
+    border-radius:999px;
+    font-size:.85rem;
+    font-weight:600;
+  }
+  .rating.low{background:#e8f5e9;color:#2e7d32}
+  .rating.mid{background:#fff8e1;color:#f57f17}
+  .rating.high{background:#ffebee;color:#c62828}
+  .breakdown{
+    margin-top:1.25rem;
+    text-align:left;
+    font-size:.9rem;
+    color:var(--muted);
+    border-top:1px solid #e4ece4;
+    padding-top:1rem;
+  }
+  .breakdown div{display:flex;justify-content:space-between;padding:.2rem 0}
+  footer{
+    text-align:center;
+    padding:1.5rem;
+    font-size:.85rem;
+    color:var(--muted);
+  }
+  footer a{color:var(--green);text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  @media(max-width:480px){
+    .card{padding:1.4rem}
+    header h1{font-size:1.5rem}
+    .total{font-size:2rem}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌍 Carbon Footprint Calculator</h1>
+  <p>Estimate your annual CO₂ emissions and discover how your lifestyle compares to sustainable targets.</p>
+</header>
+
+<main>
+  <div class="card">
+    <form id="calcForm">
+      <div class="field">
+        <label for="electricity">Monthly Electricity Use <span>(kWh)</span></label>
+        <input type="number" id="electricity" min="0" step="1" placeholder="e.g. 350" required>
+      </div>
+
+      <div class="field">
+        <label for="gas">Monthly Natural Gas Use <span>(therms)</span></label>
+        <input type="number" id="gas" min="0" step="0.1" placeholder="e.g. 40" required>
+      </div>
+
+      <div class="field">
+        <label for="car">Weekly Car Travel <span>(miles)</span></label>
+        <input type="number" id="car" min="0" step="1" placeholder="e.g. 120" required>
+      </div>
+
+      <div class="field">
+        <label for="flights">Flights per Year <span>(short-haul round trips)</span></label>
+        <input type="number" id="flights" min="0" step="1" placeholder="e.g. 2" required>
+      </div>
+
+      <div class="field">
+        <label for="diet">Diet Type</label>
+        <select id="diet">
+          <option value="2.5">Meat-heavy (daily red meat)</option>
+          <option value="2.0" selected>Average (regular meat)</option>
+          <option value="1.5">Low meat / pescatarian</option>
+          <option value="1.0">Vegetarian</option>
+          <option value="0.7">Vegan</option>
+        </select>
+      </div>
+
+      <button type="submit">Calculate My Footprint</button>
+    </form>
+
+    <div id="result">
+      <div class="total"><span id="totalValue">0</span> <small>tons CO₂ / year</small></div>
+      <div id="rating" class="rating low">Calculating…</div>
+
+      <div class="breakdown">
+        <div><span>🏠 Home energy</span><span id="homeVal">0 t</span></div>
+        <div><span>🚗 Transportation</span><span id="transVal">0 t</span></div>
+        <div><span>✈️ Flights</span><span id="flightVal">0 t</span></div>
+        <div><span>🍽️ Diet</span><span id="dietVal">0 t</span></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Based on the <a href="https://github.com/HistoryNerd-max/1" target="_blank" rel="noopener">HistoryNerd-max/1</a> project · Estimates only
+</footer>
+
+<script>
+  // Emission factors (approximate, US averages)
+  const FACTORS = {
+    electricity: 0.000417,   // tons CO2 per kWh (monthly)
+    gas: 0.0053,              // tons CO2 per therm (monthly)
+    car: 0.000404,           // tons CO2 per mile
+    flight: 0.9,             // tons CO2 per short-haul round trip
+    diet: 1                   // multiplier applied to base 2.0 tons
+  };
+
+  const form = document.getElementById('calcForm');
+  const result = document.getElementById('result');
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const electricity = parseFloat(document.getElementById('electricity').value) || 0;
+    const gas = parseFloat(document.getElementById('gas').value) || 0;
+    const car = parseFloat(document.getElementById('car').value) || 0;
+    const flights = parseFloat(document.getElementById('flights').value) || 0;
+    const diet = parseFloat(document.getElementById('diet').value) || 2.0;
+
+    // Home energy: monthly × 12 × factor
+    const home = (electricity * 12 * FACTORS.electricity) + (gas * 12 * FACTORS.gas);
+    // Transport: weekly × 52 × factor
+    const transport = car * 52 * FACTORS.car;
+    // Flights
+    const flightTotal = flights * FACTORS.flight;
+    // Diet: base 2.0 tons scaled by selected multiplier
+    const dietTotal = (diet / 2.0) * 2.0;
+
+    const total = home + transport + flightTotal + dietTotal;
+
+    document.getElementById('totalValue').textContent = total.toFixed(2);
+    document.getElementById('homeVal').textContent = home.toFixed(2) + ' t';
+    document.getElementById('transVal').textContent = transport.toFixed(2) + ' t';
+    document.getElementById('flightVal').textContent = flightTotal.toFixed(2) + ' t';
+    document.getElementById('dietVal').textContent = dietTotal.toFixed(2) + ' t';
+
+    const rating = document.getElementById('rating');
+    rating.className = 'rating';
+    if (total <= 4) {
+      rating.classList.add('low');
+      rating.textContent = '🌱 Excellent — below global sustainable target';
+    } else if (total <= 10) {
+      rating.classList.add('mid');
+      rating.textContent = '⚠️ Moderate — near average, room to improve';
+    } else {
+      rating.classList.add('high');
+      rating.textContent = '🔥 High — consider reducing your footprint';
+    }
+
+    result.classList.add('show');
+  });
+</script>
+
+</body>
+</html>
